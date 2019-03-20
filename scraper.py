@@ -1,4 +1,5 @@
 import tweepy
+from jsonmerge import merge
 from tweepy import OAuthHandler
 import json
 import wget
@@ -17,9 +18,36 @@ with open('twitter_credentials.json') as cred_data:
 	auth.set_access_token(access_token, access_secret)
 	api = tweepy.API(auth,wait_on_rate_limit=True)
 
-	data={}
+	number_of_tweets = 2
+	count = 1
 
-	for tweet in tweepy.Cursor(api.search,q="#phulwama",count=2,lang="en").items():
-    	    str = tweet._json
-    	    with open('tweets.json','a') as outfile:
-    	    	json.dump(str,outfile, indent = 4)
+	finalJson = None
+	firstIteration = True
+	lastIteration = False
+
+
+
+	for tweet in tweepy.Cursor(api.search,q="#phulwama",lang="en").items():
+    	    if count > number_of_tweets:
+    	    	break
+    	    if count == number_of_tweets:
+    	    	lastIteration = True
+    	    count = count+1
+    	    str = tweet._json     #this is a dictionary
+    	    json_string = json.dumps(str) #this is a json string
+
+    	    if firstIteration:
+    	    	finalJson="["+json_string+","
+    	    	firstIteration = False
+
+    	    elif lastIteration:
+    	    	finalJson = finalJson + json_string+"]"
+    	    	lastIteration = True
+
+    	    else:
+    	    	finalJson = finalJson + json_string+","
+		
+	#print(finalJson)
+	js = json.loads(finalJson)
+	with open('tweets.json','w') as outf:
+		json.dump(js,outf,indent = 4)	

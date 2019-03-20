@@ -1,9 +1,7 @@
 import requests
+import json
 
-URL = "http://search.twitter.com/search.json?q=phulwama&rpp=5&include_entities=true&with_twitter_user_id=true&result_type=mixed"
-location = "AMU"
+jsonFile = open('tweets.json','r')
+jsonObject = json.load(jsonFile)
+print(jsonObject[1])
 
-r = requests.get(url = URL)
-data = r.json()
-
-print(data)
