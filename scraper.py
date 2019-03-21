@@ -1,6 +1,4 @@
 import tweepy
-from jsonmerge import merge
-from tweepy import OAuthHandler
 import json
 import wget
 import csv
@@ -18,36 +16,55 @@ with open('twitter_credentials.json') as cred_data:
 	auth.set_access_token(access_token, access_secret)
 	api = tweepy.API(auth,wait_on_rate_limit=True)
 
-	number_of_tweets = 2
-	count = 1
+	number_of_tweets = 100
+	totalCount = 1
 
-	finalJson = None
+	finalJson = "["
+	finalMultimediaJson = "["
+
 	firstIteration = True
 	lastIteration = False
 
+	hashtag_List = ["#phulwama","#phulwamaterrorattack","#SurgicalStrike2","#PhulwamaMartyrs","#crpfmartyrs","#PulwamaTerroristAttack"]
+	testHashtag = ['#testingofscraper']
 
+	print("Exracting tweets")
 
-	for tweet in tweepy.Cursor(api.search,q="#phulwama",lang="en").items():
-    	    if count > number_of_tweets:
-    	    	break
-    	    if count == number_of_tweets:
-    	    	lastIteration = True
-    	    count = count+1
-    	    str = tweet._json     #this is a dictionary
-    	    json_string = json.dumps(str) #this is a json string
+	iteration = 0
+	for i in range(len(hashtag_List)):
+		hashtag = hashtag_List[i]
+		print("Processing "+hashtag)
+		multimedia_tweets_count = 1
+		for tweet in tweepy.Cursor(api.search,q=hashtag,lang="en").items():
+			if multimedia_tweets_count>=10000:
+				break
+			str = tweet._json
+			entity = str['entities']
 
-    	    if firstIteration:
-    	    	finalJson="["+json_string+","
-    	    	firstIteration = False
+			json_string = json.dumps(str)
 
-    	    elif lastIteration:
-    	    	finalJson = finalJson + json_string+"]"
-    	    	lastIteration = True
+			if 'media' not in entity:
+				finalJson = finalJson+json_string+","
+			else:
+				finalMultimediaJson = finalMultimediaJson+json_string+","
+				multimedia_tweets_count+=1
 
-    	    else:
-    	    	finalJson = finalJson + json_string+","
-		
 	#print(finalJson)
+	#print(totalCount)
+	
+	finalJson = finalJson[:-1]
+	finalMultimediaJson = finalMultimediaJson[:-1]
+
+	finalJson = finalJson+"]"
+	finalMultimediaJson = finalMultimediaJson+"]"
+
+	#testFile = open('test.json','w')
+	#testFile.write(finalJson)
 	js = json.loads(finalJson)
+	mul_js = json.loads(finalMultimediaJson)
+
+	with open('multimedia.json','w') as outf:
+		json.dump(mul_js,outf,indent = 4)
+
 	with open('tweets.json','w') as outf:
-		json.dump(js,outf,indent = 4)	
+		json.dump(js,outf,indent = 4)
