@@ -2,6 +2,7 @@ import tweepy
 import json
 import wget
 import csv
+import networkx as nx
 
 #Twitter Authentication
 with open('twitter_credentials.json') as cred_data:
@@ -16,9 +17,8 @@ with open('twitter_credentials.json') as cred_data:
 	auth.set_access_token(access_token, access_secret)
 	api = tweepy.API(auth,wait_on_rate_limit=True)
 
-	a = 1
+	g = nx.Graph()
+	g.add_edge(1,2)
 
-	for tweet in tweepy.Cursor(api.search,q="#phulwama",lang="en").items():
-		print(a)
-		a+=1
+	nx.write_adjlist(g,'vasu')	
 			
